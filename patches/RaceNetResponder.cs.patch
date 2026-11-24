@@ -1,0 +1,57 @@
+--- a/src/RaceNetShowdown.Server/RaceNet/RaceNetResponder.cs
++++ b/src/RaceNetShowdown.Server/RaceNet/RaceNetResponder.cs
+@@ -354,7 +354,11 @@
+         IReadOnlyDictionary<string, string> headers,
+         RaceNetSessionInfo? session)
+     {
+-        return new RaceNetResponse(HtmlContentType, string.Empty, headers);
++        // Оригинальный сервер (IIS) отдавал в теле vdic с полем PrincipalId (si64).
++        // Без него клиент висит на "SIGNING INTO RACENET".
++        var principalId = session?.PlayerProfileId > 0 ? session.PlayerProfileId : 752_828;
++        var body = EgoNetBinary.Dictionary(EgoNetBinary.Si64("PrincipalId", principalId));
++        return new RaceNetResponse(HtmlContentType, body, headers);
+     }
+ 
+     private RaceNetResponse BuildLocalEgoNetResponse(
+@@ -583,16 +587,13 @@
+         byte[] responseBody,
+         IReadOnlyDictionary<string, string> headers)
+     {
+-        if (functionName == "AsynchronousChallengeService.GetCompletedIssuedChallenges")
+-        {
+-            var responseHeaders = headers
+-                .Concat([new KeyValuePair<string, string>("Cache-Control", "private, s-maxage=0")])
+-                .ToDictionary(value => value.Key, value => value.Value, StringComparer.OrdinalIgnoreCase);
+-
+-            return new RaceNetResponse(HtmlContentType, responseBody, responseHeaders);
+-        }
+-
+-        return new RaceNetResponse(EgoNetContentType, responseBody, headers);
++        // Real IIS answers every Showdown challenge query with text/html and
++        // Cache-Control: private, s-maxage=0.
++        var responseHeaders = headers
++            .Concat([new KeyValuePair<string, string>("Cache-Control", "private, s-maxage=0")])
++            .ToDictionary(value => value.Key, value => value.Value, StringComparer.OrdinalIgnoreCase);
++
++        return new RaceNetResponse(HtmlContentType, responseBody, responseHeaders);
+     }
+ 
+     private async Task<RaceNetResponse> ChallengeLifecycleEgoNetAsync(
+@@ -621,7 +622,7 @@
+                 cancellationToken);
+             var responseBody = EgoNetBinary.Dictionary(
+                 EgoNetBinary.Si64("GhostSlotID", issuedChallenge.GhostSlotId));
+-            return new RaceNetResponse(EgoNetContentType, responseBody, headers);
++            return new RaceNetResponse(HtmlContentType, responseBody, headers);
+         }
+ 
+         if (functionName == "AsynchronousChallengeService.IssueChallenge")
+@@ -678,7 +679,7 @@
+         Console.WriteLine(
+             $"{DateTime.Now:HH:mm:ss} challenge-flow: {functionName} request={body.BodyBytes.Length} bytes {presence} raceEvent={raceEvent} vehicle={vehicle} ghostSlot={ghostSlot}");
+ 
+-        return EgoNet(headers);
++        return new RaceNetResponse(HtmlContentType, string.Empty, headers);
+     }
+ 
+     private byte[] BuildGhostDownloadResponse(long ghostSlotId, byte[] ghostData)
