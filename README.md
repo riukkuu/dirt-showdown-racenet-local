@@ -53,7 +53,7 @@ RaceNetLocal-DiRT-Showdown-v0.1.0/
 ├─ tools/patch-game.ps1 manual executable patcher
 ├─ README.md            this file (English)
 ├─ README.ru.md         Russian version
-├─ LICENSE / NOTICE.md  our MIT license and upstream status
+├─ LICENSE / NOTICE.md  our GNU GPL 3.0 license and upstream status
 └─ VERSION.txt
 ```
 
@@ -189,7 +189,7 @@ what not to attach: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License and legal
 
-- Our code (installer, scripts, docs) is **MIT** — see [LICENSE](LICENSE).
+- Our code (installer, scripts, docs) is **GNU GPL 3.0** — see [LICENSE](LICENSE).
 - Patches target [EgoNet Revival](https://github.com/Berleis/egonet-revival),
   which has **no license file** at the pinned commit. We claim no rights over
   upstream code. See [NOTICE.md](NOTICE.md).
